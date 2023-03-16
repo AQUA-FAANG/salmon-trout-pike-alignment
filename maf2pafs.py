@@ -13,9 +13,9 @@ def makeCigar(seqQ, seqT):
     if seqQ[i] == "-" and seqT[i] == "-":
       continue
     elif seqQ[i] == "-":
-      cigar += "I"
-    elif seqT[i] == "-":
       cigar += "D"
+    elif seqT[i] == "-":
+      cigar += "I"
     else:
       cigar += "M"
   # count recurring characters in the cigar string and write count + character
@@ -108,8 +108,8 @@ def parse_maf_block(maf_block, genomes):
   # maf_block is a list of lists of strings
   outList = []
   for line in maf_block:
-    (src,start,size,strand,srcSize,text) = line.split("\t")[1:]
-
+    (src,start,size,strand,srcSize,text) = line.strip().split("\t")[1:]
+    #
     # "src" is the genome name and chromsome name separated by a dot
     # Since both the genome names chromosome can contain ".", we need to match against the list
     # of genomes to separate the genome name from the chromosome name
@@ -118,12 +118,12 @@ def parse_maf_block(maf_block, genomes):
     if not reMatch:
       continue
     genome, chrom = reMatch.groups()
-
+    #
     # convert the start and size to integers
     start = int(start)
     size = int(size)
     srcSize = int(srcSize)
-
+    #
     if strand == "-":
       # need to calculate the start on the forward strand (count from the end of the chromosome)
       start = srcSize - (start + size) 
@@ -161,7 +161,7 @@ def main():
   # generate output file names for each genome combination
   output_files = get_outfiles(out_prefix, genomes)
 
-  block_count=1
+  block_count=0
   # read maf file
   with open(maf_file_path, "r") as maf_file:
     # iterate over each block in the maf file
