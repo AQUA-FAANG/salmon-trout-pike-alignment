@@ -2,7 +2,7 @@ import re
 import argparse
 
 
-def makeCigar(seqQ, seqT):
+def makeCigar(seqQ, seqT, strandQ):
   # iterate over each character in the strings seqQ and seqT (they are same length)
   # if both are gaps, skip
   # if seqQ is a gap, add a deletion
@@ -18,6 +18,10 @@ def makeCigar(seqQ, seqT):
       cigar += "I"
     else:
       cigar += "M"
+
+  # if the query is on the reverse strand, reverse the cigar string
+  if strandQ == "-":
+    cigar = cigar[::-1]
   # count recurring characters in the cigar string and write count + character
   # e.g. "MMMD" -> "3M1D"
   cigar = re.sub(r"(\w)\1*", lambda m: str(len(m.group(0))) + m.group(1), cigar)
@@ -48,7 +52,7 @@ def generate_paf(alnQ,alnT):
   For now we ignore columns 2,7,10,11,12 and set them to ""
   """
   # get the cigar string
-  cigar = makeCigar(alnQ[6], alnT[6])
+  cigar = makeCigar(alnQ[6], alnT[6], alnQ[4])
   # get the start and end positions of the alignment
   relStrand =  "+" if (alnQ[4]==alnT[4]) else "-"
   # generate the paf line
