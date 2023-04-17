@@ -4,10 +4,10 @@
 #SBATCH --mem=100G
 #SBATCH --constraint=avx2
 #SBATCH --job-name=cactus
-#SBATCH --array=1,2,4-29%3
+#SBATCH --array=3,5,9,10,14,23,27%3
 
 
-CACTUS_SIF="/mnt/project/Aqua-Faang/analysis/genome_alignments/scripts/cactus_v2.1.0.sif"
+CACTUS_SIF="cactus_v2.4.4.sif"
 
 BLOCK_DIR="data/blocks/ssa$(printf "%02d" $SLURM_ARRAY_TASK_ID)"
 echo $BLOCK_DIR

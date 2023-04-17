@@ -1,4 +1,5 @@
 import re
+import sys
 import argparse
 
 
@@ -151,7 +152,7 @@ This will generate paf files for the following genome combinations:
   parser = argparse.ArgumentParser(description="Convert maf file to multiple paf files",
                                    formatter_class=argparse.RawTextHelpFormatter,
                                    epilog=epilog_text)
-  parser.add_argument('maf_file_path', type=str, help='path to maf file')
+  parser.add_argument('maf_file_path', type=str, help='path to maf file. Use - to read from stdin')
   parser.add_argument('--out_prefix', type=str, default="", help='prefix for output files')
   parser.add_argument('genomes', type=str, nargs='+', help='list of genomes separated by spaces (minimum 1). Note that the genome names must match the prefixes (followed by .) in the maf file.')
   args = parser.parse_args( argv )
@@ -166,27 +167,33 @@ def main():
   output_files = get_outfiles(out_prefix, genomes)
 
   block_count=0
+  
   # read maf file
-  with open(maf_file_path, "r") as maf_file:
-    # iterate over each block in the maf file
-    for maf_block in read_maf_block(maf_file):
-      block = parse_maf_block(maf_block, genomes)
-      block_count += 1
-      print(f'block {block_count}. length: {len(block)}, genomes: {" ".join([b[0]for b in block])}')
-      # for each pair of sequences in the block
-      for iQ in range(len(block)):
-        for iT in range(len(block)):
-          if iQ == iT:
-            continue
-          # get the pairwise alignment
-          alnQ = block[iQ]; alnT = block[iT]; 
-          # generate the paf line
-          paf = generate_paf(alnQ,alnT)
-          # get the genome pair
-          genomepair = block[iQ][0]+block[iT][0]
-          # write the paf line to the output file
-          output_files[genomepair].write(paf+"\n")
-  # close the output files
+  if maf_file_path == '-':
+    maf_file = sys.stdin
+  else:
+    maf_file = open(maf_file_path, "r")
+  
+  # iterate over each block in the maf file
+  for maf_block in read_maf_block(maf_file):
+    block = parse_maf_block(maf_block, genomes)
+    block_count += 1
+    print(f'block {block_count}. length: {len(block)}, genomes: {" ".join([b[0]for b in block])}')
+    # for each pair of sequences in the block
+    for iQ in range(len(block)):
+      for iT in range(len(block)):
+        if iQ == iT:
+          continue
+        # get the pairwise alignment
+        alnQ = block[iQ]; alnT = block[iT]; 
+        # generate the paf line
+        paf = generate_paf(alnQ,alnT)
+        # get the genome pair
+        genomepair = block[iQ][0]+block[iT][0]
+        # write the paf line to the output file
+        output_files[genomepair].write(paf+"\n")
+  # close the files
+  maf_file.close()
   for f in output_files.values():
     f.close()
 

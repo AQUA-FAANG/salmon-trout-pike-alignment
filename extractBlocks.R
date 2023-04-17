@@ -1,7 +1,7 @@
 library(tidyverse)
 
 out_dir = "data/blocks"
-syntenyRegionXL = "Salmonid_Synteny_to_Lars_2023-03-17.fixedheaders.xlsx"
+syntenyRegionXL = "Salmonid_Synteny_for_alignments_2023.04.12.xlsx"
 
 spc2fasta=c(
   Ssal="/mnt/project/ELIXIR/salmobase/datafiles/genomes/AtlanticSalmon/Ssal_v3.1/sequence_Ensembl/Salmo_salar.Ssal_v3.1.dna_sm.toplevel.fa.gz",

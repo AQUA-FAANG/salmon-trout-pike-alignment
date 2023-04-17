@@ -25,7 +25,7 @@
 
 import re
 
-def fix_maf_coordinates(maf_file, chrSizes):
+def fix_maf_coordinates(maf_file, chrSizes, keep_subgenome=False):
   # maf_file is a file objects
   # chrSizes is a dictionary of dictionaries with the chromosome sizes for each genome
   # iterate through the maf file and convert the coordinates
@@ -44,7 +44,7 @@ def fix_maf_coordinates(maf_file, chrSizes):
       reMatch = re.match(f"({'|'.join(genomes)})(_[AB])?\\.([^:]+):([0-9]+)-([0-9]+)", src)
       if not reMatch:
         continue
-      genome, _, chrom, block_start, block_end  = reMatch.groups()
+      genome, subgenome, chrom, block_start, block_end  = reMatch.groups()
       # convert to integers
       block_start = int(block_start)
       block_end = int(block_end)
@@ -58,7 +58,8 @@ def fix_maf_coordinates(maf_file, chrSizes):
       elif strand == "-":
         start = start + (chrSizes[genome][chrom] - block_end)
       # update the src field
-      src = f"{genome}.{chrom}"
+      if keep_subgenome:
+        src = f"{genome}{subgenome}.{chrom}"
       # update the start field
       start = str(start)
       # update the srcSize field
@@ -71,14 +72,17 @@ def fix_maf_coordinates(maf_file, chrSizes):
   return
 
 def main():
-  # check the number of arguments
+  # parse arguments: maf_file chrSizes_file [--keep_subgenome]
+  import argparse
   import sys
-  if len(sys.argv) != 3:
-    sys.stderr.write(f"Usage: {sys.argv[0]} maf_file chrSizes_file")
-    sys.exit(1)
-  # get the input and output file names
-  maf_file = sys.argv[1]
-  chrSizes_file = sys.argv[2]
+  parser = argparse.ArgumentParser(description="Convert coordinates in maf file")
+  parser.add_argument("maf_file", help="maf file")
+  parser.add_argument("chrSizes_file", help="chromosome sizes file")
+  parser.add_argument("--keep_subgenome", action="store_true", help="keep the subgenome name (_A/_B) suffix in the chromosome name")
+  args = parser.parse_args()
+  maf_file = args.maf_file
+  chrSizes_file = args.chrSizes_file
+  keep_subgenome = args.keep_subgenome
   # read the chromosome sizes
   chrSizes = {}
   with open(chrSizes_file) as f:
@@ -89,7 +93,7 @@ def main():
       chrSizes[genome][chrom] = int(size)
   # open the files
   with open(maf_file) as maf_file:
-    fix_maf_coordinates(maf_file, chrSizes)
+    fix_maf_coordinates(maf_file, chrSizes,keep_subgenome=keep_subgenome)
   return
 
 if __name__ == "__main__":
