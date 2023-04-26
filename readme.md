@@ -1,24 +1,53 @@
 # Genome alignment with cactus by syntenic blocks
 
-We apply a strategy to improve whole genome alignments by splitting the genomes into __blocks__ of duplicate syntenic regions in the salmonid genomes. We are aligning salmon, trout and pike (Ssal, Omyk, Eluc) where the duplicated salmonid genomes are split into two __sub-genomes__ (suffixed _A and _B). The salmonid synteny table contains a manually curated set of regions corresponding to each of the salmon chromosome. Note that the table uses salmon chromosome as reference for each block, i.e. the each block contains an entire Ssal chromosome as Ssal_A, but for the other genomes it can contain multiple regions from multiple chromosomes. Each block can be identified using Ssal_A as the block ID (e.g. ssa01).
+This repository contains the scripts used to generate salmonid whole genome alignments. We found that feeding the entire genome directly into the cactus genome aligner performed poorly for the duplicated genomes. We therefore apply a strategy for improving the alignments by splitting genomes into __blocks__ of duplicate syntenic regions. The genomes of salmon, trout, and pike (Ssal, Omyk, Eluc) are aligned, with the duplicated salmonid genomes split into two __sub-genomes__ (suffixed _A and _B).
 
-The first step is to extract the sequences for each synteny block. The names of the extracted sequences are
+The __blocks__ are manually curated and can be found in the table `Salmonid_Synteny_for_alignments_2023.04.12.xlsx`. The Atlantic salmon chromosomes are used as reference, i.e. there is one block for each salmon chromosome (this is Ssal_A in the table and is used as block ID). For each block the coordinates for the corresponding syntenic regions in the other (sub-)genomes are specified (typically multiple regions from multiple chromosomes). Note that every part of each genome is represented twice in the table since a duplicated genome is used as reference.
 
-* extractBlocks.R - Reads the synteny table and generates a directory structure (one for each salmon chromosome) and the commands (samtools faidx) needed to extract the corresponding blocks for each (sub-)genome
-* run_extractBlocks.job.sh - Actually runs the commands generated. (had to do it this way because I couldn't get samtools to run from R)
-* run_cactus.job.sh - slurm array to run cactus for each of the directories (one for salmong chromosome)
-* run_hal2maf.job.sh - slurm array that runs hal2maf and fix_maf.py (writes data/salmon-trout-pike)
-* run_fix_maf.job.sh - slurm array to run fix_maf only (with keeping the A/B suffix)
-* makeChromSizes.R - make a table of chromosome sizes needed for fix_maf
-* fix_maf.py - Converts the coordinates from block coordinates to full genome coordinates (optionally keep the _A/_B suffix)
-* maf2pafs.py - Converts maf file to pairwise .paf files that can be viewed in jbrowse
+The coordinates from the alignments output from cactus are relative to the extractes syntenic regions, a.k.a. __block coordinates__, and must be converted back to original coordinates.
+
+## Overview
+This repository contains a set of scripts to:
+1. Extract sequences for each synteny block.
+2. Align the blocks using Cactus.
+3. Convert the resulting HAL files to MAF files.
+4. Convert the block coordinates in the MAF files back to the original coordinates
+5. Perform block coordinate conversion on BED files to enable the use of halLiftover.
+6. Additional tool to convert MAF to PAF files.
 
 
+## Prerequisites
+- R
+- samtools
+- cactus (includes halLiftover and hal2maf)
 
-## halLiftover bed files with synteny block alignments
+## Setup
+For now the scripts are hardcoded to use my local setup, including the use of slurm jobs and environment modules, so some modification is needed to make them run elsewhere. Cactus was run using singurity by pulling the docker image from https://github.com/ComparativeGenomicsToolkit/cactus/releases
 
-Since the hal files contains subsequences we need to convert any coordinates to "block coordinates", i.e. coordinates relative to the sub-sequences. We also need to split the bed file since each block has its own hal file. Then halLiftover can be ran for each block. The resulting bed files need to be converted back to the original coordinates (and can be concatenated)
+## Workflow
 
-* split_bed_to_blocks.R - Convert coordinates in BED file to block coordinates and split
-* fix_bed.py - Convert coordinates in BED file from block coordinates to sequence coordinates
+### Sequence Extraction
+* `extractBlocks.R`: Reads the synteny table and generates a directory structure (one for each salmon chromosome) and the commands (samtools faidx) needed to extract the corresponding blocks for each (sub-)genome.
+* `run_extractBlocks.job.sh`: Executes the commands generated in the previous step. (This was necessary because samtools wouldn't run directly from R).
+
+### Cactus Alignment
+* `run_cactus.job.sh`: Slurm array that runs Cactus for each of the directories (one for each salmon chromosome).
+
+###  Coordinate Conversion
+* `run_hal2maf.job.sh`: Slurm array that runs hal2maf ($1 is reference genome "Ssal_A" by default).
+* `run_fix_maf.job.sh`: Slurm array that runs `fix_maf.py`, only keeping the A/B suffix.
+* `fix_maf.py`: Converts coordinates from block coordinates to full genome coordinates (optionally keeps the _A/_B suffix).
+* `makeChromSizes.R`: Generates a table of chromosome sizes needed for `fix_maf.py`.
+
+## Tools
+
+### halLiftover with coordinate conversion
+To use halLiftover with synteny block alignments, perform the following steps:
+
+1. Convert coordinates in BED file to block coordinates and split with `split_bed_to_blocks.R`.
+2. Run halLiftover for each block using `run_halLiftover.job.sh`.
+3. Convert coordinates in BED files from block coordinates to sequence coordinates using `fix_bed.py`.
+
+### MAF to PAF
+* `maf2pafs.py`: Converts MAF files to pairwise .PAF files that can be viewed in JBrowse.
 
