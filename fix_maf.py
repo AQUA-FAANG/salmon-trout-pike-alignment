@@ -58,8 +58,10 @@ def fix_maf_coordinates(maf_file, chrSizes, keep_subgenome=False):
       elif strand == "-":
         start = start + (chrSizes[genome][chrom] - block_end)
       # update the src field
-      if keep_subgenome:
+      if keep_subgenome and (subgenome is not None):
         src = f"{genome}{subgenome}.{chrom}"
+      else:
+        src = f"{genome}.{chrom}"
       # update the start field
       start = str(start)
       # update the srcSize field

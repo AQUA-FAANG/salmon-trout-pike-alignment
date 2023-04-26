@@ -8,6 +8,7 @@
 
 CACTUS_SIF="cactus_v2.4.4.sif"
 
+# Usage: sbatch run_halLiftover.job.sh <in_prefix> <out_prefix> <src_genome> <target_genome>
 
 INPUT_FILE=${1}ssa$(printf "%02d" $SLURM_ARRAY_TASK_ID).bed
 OUTPUT_FILE=${2}ssa$(printf "%02d" $SLURM_ARRAY_TASK_ID).bed

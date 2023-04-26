@@ -50,4 +50,6 @@ To use halLiftover with synteny block alignments, perform the following steps:
 
 ### MAF to PAF
 * `maf2pafs.py`: Converts MAF files to pairwise .PAF files that can be viewed in JBrowse.
+* `run_maf2pafs.py.job.sh`: Slurm array that runs maf2pafs.py
+* `run_merge_pafs.py.job.sh`: Merge and sort pafs to get whole genome in one file
 

@@ -6,13 +6,25 @@
 #SBATCH --job-name=maf_fix
 #SBATCH --array=1-29%10
 
+# if $1 is empty, use Ssal_A as the reference genome
+if [ -z "$1" ]; then
+  REFGENOME="Ssal_A"
+else
+  REFGENOME=$1
+fi
+
 BLOCK_DIR="data/blocks/ssa$(printf "%02d" $SLURM_ARRAY_TASK_ID)"
-echo $BLOCK_DIR
-MAF_FILE=$BLOCK_DIR/output.maf
+MAF_FILE=$BLOCK_DIR/$REFGENOME.maf
+OUTDIR=data/maf_ref_$REFGENOME
+mkdir -p $OUTDIR
+MAF_FIXED="$OUTDIR/ssa$(printf "%02d" $SLURM_ARRAY_TASK_ID)_AB.maf"
 
-mkdir -p data/salmon-trout-pike-AB
-MAF_FIXED="data/salmon-trout-pike-AB/ssa$(printf "%02d" $SLURM_ARRAY_TASK_ID)_AB.maf"
+echo Converting $MAF_FILE to $MAF_FIXED...
 
-echo "Fixing coordinates in maf file..."
 python fix_maf.py --keep_subgenome $MAF_FILE chromSizes.tsv > $MAF_FIXED
+
+echo Compressing...
+
 gzip $MAF_FIXED
+
+echo Done.

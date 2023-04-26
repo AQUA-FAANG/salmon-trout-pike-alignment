@@ -74,15 +74,28 @@ def read_maf_block(maf_file):
   yield block
   return
 
-def get_outfiles(out_prefix, genomes):
+def get_outfiles(out_prefix,use_reference, remove_subgenome, genomes):
   """
   generate output file names for each genome combination
   """
   output_files = {}
+  filenames2file = {}
   for g1 in genomes:
+    if use_reference and g1 != genomes[0]:
+      continue
     for g2 in genomes:
       if not g1+g2 in output_files:
-        output_files[g1+g2] = open(f'{out_prefix}{g1}_vs_{g2}.paf', 'w')
+        if remove_subgenome:
+          # remove "_[AB]" from the end of the genome name
+          g1_nosub = re.sub(r"_([AB])$", "", g1)
+          g2_nosub = re.sub(r"_([AB])$", "", g2)
+          filename = f'{out_prefix}{g1_nosub}_vs_{g2_nosub}.paf'
+        else:
+          filename = f'{out_prefix}{g1}_vs_{g2}.paf'
+        # check if we have already opened a file with this name
+        if filename not in filenames2file:
+          filenames2file[filename] = open(filename, 'w')
+        output_files[g1+g2] = filenames2file[filename]
   return output_files
 
 def parse_maf_block(maf_block, genomes):
@@ -140,47 +153,72 @@ def parse_maf_block(maf_block, genomes):
 def getArguments( argv = None ):
   # parse arguments from command line
   epilog_text = """
-Example: 
-  maf2pafs.py alignment.maf --out_prefix out/alignment_ A B
+There are two ways to use this script, either extract all pairwise combinations of given genomes or
+use reference to extract all alignments from reference to all given genomes.
+
+Example 1 (all pairwise combinations): 
+  maf2pafs.py alignment.maf --out_prefix out/alignment_ Ssal Omyk
 
 This will generate paf files for the following genome combinations:
-  out/alignment_A_vs_A.paf
-  out/alignment_A_vs_B.paf
-  out/alignment_B_vs_A.paf
-  out/alignment_B_vs_B.paf
+  out/alignment_Ssal_vs_Ssal.paf
+  out/alignment_Ssal_vs_Omyk.paf
+  out/alignment_Omyk_vs_Ssal.paf
+  out/alignment_Omyk_vs_Ssal.paf
+
+Example 2 (alignment with reference): 
+  maf2pafs.py alignment_with_subgenomes.maf --use_reference --out_prefix out/alignment_ Ssal_A Ssal_B Omyk_A Omyk_B
+
+This will generate paf files for the following genome combinations:
+  out/alignment_Ssal_A_vs_Ssal_A.paf (If duplications present in the maf file)
+  out/alignment_Ssal_A_vs_Ssal_B.paf
+  out/alignment_Ssal_A_vs_Omyk_A.paf
+  out/alignment_Ssal_A_vs_Omyk_B.paf
+
+Example 3 (alignment with reference, remove subgenomes): 
+  maf2pafs.py alignment_with_subgenomes.maf --use_reference --remove_subgenome --out_prefix out/alignment_ Ssal_A Ssal_B Omyk_A Omyk_B
+
+This will generate paf files for the following genome combinations:
+  out/alignment_Ssal_vs_Ssal.paf (target genome is Ssal_A/B, and _A/B suffix is removed from the genome name)
+  out/alignment_Ssal_vs_Omyk.paf (target genome is Omyk_A/B, and _A/B suffix is removed from the genome name)
+
+
 """
   parser = argparse.ArgumentParser(description="Convert maf file to multiple paf files",
                                    formatter_class=argparse.RawTextHelpFormatter,
                                    epilog=epilog_text)
-  parser.add_argument('maf_file_path', type=str, help='path to maf file. Use - to read from stdin')
   parser.add_argument('--out_prefix', type=str, default="", help='prefix for output files')
+  parser.add_argument("--use_reference", action="store_true", help="Use the first genome in the list as the reference genome")
+  parser.add_argument("--remove_subgenome", action="store_true", help="remove the subgenome name (_A/_B) suffix in the chromosome name")
+  parser.add_argument('maf_file_path', type=str, help='path to maf file. Use - to read from stdin')
   parser.add_argument('genomes', type=str, nargs='+', help='list of genomes separated by spaces (minimum 1). Note that the genome names must match the prefixes (followed by .) in the maf file.')
-  args = parser.parse_args( argv )
-  return(args.maf_file_path, args.out_prefix, args.genomes) 
+  return(parser.parse_args( argv )) 
 
 def main():
   # get the command line arguments
   #maf_file_path, out_prefix, genomes = getArguments(["Ssa03_prkag2b_fixed.maf", "--out_prefix", "test_", "Ssal", "Eluc"])
 
-  maf_file_path, out_prefix, genomes = getArguments()
+  # out_prefix, use_reference, remove_subgenome, maf_file_path, genomes 
+  args = getArguments()
   # generate output file names for each genome combination
-  output_files = get_outfiles(out_prefix, genomes)
+  output_files = get_outfiles(args.out_prefix, args.use_reference, args.remove_subgenome, args.genomes)
 
   block_count=0
   
   # read maf file
-  if maf_file_path == '-':
+  if args.maf_file_path == '-':
     maf_file = sys.stdin
   else:
-    maf_file = open(maf_file_path, "r")
+    maf_file = open(args.maf_file_path, "r")
   
   # iterate over each block in the maf file
   for maf_block in read_maf_block(maf_file):
-    block = parse_maf_block(maf_block, genomes)
+    block = parse_maf_block(maf_block, args.genomes)
     block_count += 1
     print(f'block {block_count}. length: {len(block)}, genomes: {" ".join([b[0]for b in block])}')
     # for each pair of sequences in the block
     for iQ in range(len(block)):
+      if args.use_reference and iQ != 0: # reference query is always first sequence in the block
+        continue
       for iT in range(len(block)):
         if iQ == iT:
           continue
