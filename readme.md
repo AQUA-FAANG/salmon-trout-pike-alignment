@@ -22,7 +22,7 @@ This repository contains a set of scripts to:
 - cactus (includes halLiftover and hal2maf)
 
 ## Setup
-For now the scripts are hardcoded to use my local setup, including the use of slurm jobs and environment modules, so some modification is needed to make them run elsewhere. Cactus was run using singurity by pulling the docker image from https://github.com/ComparativeGenomicsToolkit/cactus/releases
+For now the scripts are hardcoded to use my local setup, including the use of slurm jobs and environment modules, so some modification is needed to make them run elsewhere. Cactus was run using singularity with image pulled from the docker image at https://github.com/ComparativeGenomicsToolkit/cactus/releases
 
 ## Workflow
 
