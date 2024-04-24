@@ -2,6 +2,26 @@ import pandas as pd
 from Bio.AlignIO.MafIO import MafIndex
 import argparse
 
+def get_cds_nAligned(row,mafidx):
+  starts = [int(x)-1 for x in row.start.split(',')]
+  ends = [int(x) for x in row.end.split(',')]
+  try:
+    multiple_alignment = mafidx.get_spliced(starts, ends, strand=row.strand)
+  except ValueError as e:
+    return pd.DataFrame({
+          'chrom': [row['chrom']],
+          'geneID': [row['geneID']],
+          'spc.chrom': ["Error: " + str(e)],
+          'nAligned': [-1]
+    })
+  n = len(multiple_alignment)
+  return pd.DataFrame({
+          'chrom': [row['chrom']] * n,
+          'geneID': [row['geneID']] * n,
+          'spc.chrom': [seqrec.name for seqrec in multiple_alignment],
+          'nAligned': [len(str(seqrec.seq).replace("-", "")) for seqrec in multiple_alignment]
+      })
+
 def countAlignedCDS(chrom, refGenome, mafFile, mafindexFile, cdsCoordsFile, outFile):
 
   df = pd.read_csv(cdsCoordsFile ,delimiter="\t", dtype={"chrom": str})
@@ -11,21 +31,8 @@ def countAlignedCDS(chrom, refGenome, mafFile, mafindexFile, cdsCoordsFile, outF
 
   df_chrom = df[df['chrom'] == chrom]
 
-  def get_cds_nAligned(row):
-    starts = [int(x)-1 for x in row.start.split(',')]
-    ends = [int(x) for x in row.end.split(',')]
-    multiple_alignment = idx.get_spliced(starts, ends, strand=row.strand)
-    n = len(multiple_alignment)
-    return pd.DataFrame({
-            'chrom': [row['chrom']] * n,
-            'geneID': [row['geneID']] * n,
-            'spc.chrom': [seqrec.name for seqrec in multiple_alignment],
-            'nAligned': [len(str(seqrec.seq).replace("-", "")) for seqrec in multiple_alignment]
-        })
 
-
-  
-  new_df = pd.concat(df_chrom.apply(get_cds_nAligned, axis=1).tolist(), ignore_index=True)
+  new_df = pd.concat(df_chrom.apply(get_cds_nAligned, axis=1, mafidx=idx).tolist(), ignore_index=True)
 
   new_df.to_csv(outFile, sep='\t', index=False, header=True)
 
