@@ -9,6 +9,7 @@
 
 CACTUS_SIF="$HOME/github/AQUA-FAANG/salmon-trout-pike-alignment/cactus_v2.7.1.sif"
 
+# Downloaded from http://ftp.ensembl.org/pub/misc/aqua-faang/cactus/20210908/aqua-faang.hal
 DATA_DIR="/mnt/SCRATCH/lagr/aqua-faang/cactus"
 HAL_FILE=aqua-faang.hal 
 
