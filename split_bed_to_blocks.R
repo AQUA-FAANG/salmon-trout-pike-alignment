@@ -56,17 +56,28 @@ bed_tbl <- read_tsv(bed_file,col_names = F,
 # genome_join uses 1-based, blocks are extracted using samtools which uses 1-based
 # bed file is 0-based
 
+# Note regarding the 0-based/1-based coordinates of blocks in the synteny table:
+# The coordinates are used to extract the subsequence using "samtools faidx" which
+# expects 1-based coordinates but tolerates being given 0.
+# This means that when converting coordinates, the block coordinates should be
+# treated as 1-based and any values of 0 needs to corrected to 1.
+# However, since the block coordinates is also used in the chromosome name they 
+# have to remain the same in that context, i.e. don't convert 0's to 1's.
+# (All this could have been avoided if the )
 
 bed_tbl %>% 
-  mutate(X2=X2+1) %>% # make start coordinates 1-based
+  mutate(X2=X2+1) %>% # make start coordinates 1-based for the genome join
   # join the blocks that match coordinates of given genome
   genome_inner_join(filter(blockTbl,genome==input_genome) %>% select(-genome,-spc), 
                     by=c("X1"="chr","X2"="start","X3"="end")) %>% 
-  # convert start and end by subtracting block start. Also keep the coordinates within the block
-  mutate(X2=pmax(0,X2-(start-1))) %>% 
-  mutate(X3=pmin(end-start+1,X3-(start-1))) %>% 
+  mutate(X2=X2-1) %>% # return start coordinates to 0-based 
   # set chr = block_chr:start-end
   mutate(X1=paste0(chr,":",start,"-",end)) %>% 
+  # replace block start 0's to 1's (see above note)
+  mutate(start = pmax(1,start)) %>% 
+# convert start and end by subtracting block start. Also keep the coordinates within the block
+  mutate(X2=pmax(0,X2-(start-1))) %>% 
+  mutate(X3=pmin(end-start+1,X3-(start-1))) %>% 
   select(-chr,-start,-end) %>% 
   # split by blockID
   split(., f = .$blockID) %>% 
