@@ -6,7 +6,7 @@
 #SBATCH --job-name=halLiftover
 #SBATCH --array=1-29
 
-CACTUS_SIF="cactus_v2.4.4.sif"
+CACTUS_SIF="cactus_v2.7.1.sif"
 
 # Usage: sbatch run_halLiftover.job.sh <in_prefix> <out_prefix> <src_genome> <target_genome>
 
@@ -19,7 +19,7 @@ echo Source genome: $3
 echo Target genome: $4
 
 # halLiftover [Options] <halFile> <srcGenome> <srcBed> <tgtGenome> <tgtBed>
-singularity exec --contain --bind .:/data -H /data  $CACTUS_SIF halLiftover \
+singularity exec --contain --bind data:/data --pwd /  $CACTUS_SIF halLiftover \
   --noDupes $HAL_FILE $3 $INPUT_FILE $4 $OUTPUT_FILE
 
 # Note: the binaries in the image are in the /home directory which is bound by default on Orion.
