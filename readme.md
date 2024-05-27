@@ -4,7 +4,7 @@ This repository contains the scripts used to generate salmonid whole genome alig
 
 The __blocks__ are manually curated and can be found in the table `Salmonid_Synteny_for_alignments_2023.04.12.xlsx`. The Atlantic salmon chromosomes are used as reference, i.e. there is one block for each salmon chromosome (this is Ssal_A in the table and is used as block ID). For each block the coordinates for the corresponding syntenic regions in the other (sub-)genomes are specified (typically multiple regions from multiple chromosomes). Note that every part of each genome is represented twice in the table since a duplicated genome is used as reference.
 
-The coordinates from the alignments output from cactus are relative to the extractes syntenic regions, a.k.a. __block coordinates__, and must be converted back to original coordinates.
+The coordinates from the alignments output from cactus are relative to the extracted syntenic regions, a.k.a. __block coordinates__, and must be converted back to original coordinates.
 
 ## Overview
 This repository contains a set of scripts to:
@@ -41,12 +41,15 @@ For now the scripts are hardcoded to use my local setup, including the use of sl
 
 ## Tools
 
-### halLiftover with coordinate conversion
-To use halLiftover with synteny block alignments, perform the following steps:
+### splitLiftover.sh - halLiftover with coordinate conversion
+
+Usage: splitLiftover.sh <in_bed> <out_bed> <src_genome> <target_genome> 
+
+This script lets you to perform liftover with synteny block alignments by converting coordinates before and after running halLiftover. It is performing the following steps:
 
 1. Convert coordinates in BED file to block coordinates and split with `split_bed_to_blocks.R`.
-2. Run halLiftover for each block using `run_halLiftover.job.sh`.
-3. Convert coordinates in BED files from block coordinates to sequence coordinates using `fix_bed.py`.
+2. Run halLiftover for each block.
+3. Convert coordinates in BED/PSL files from block coordinates back to sequence coordinates using `fix_bed.py` or `fix_psl.py`.
 
 ### MAF to PAF
 * `maf2pafs.py`: Converts MAF files to pairwise .PAF files that can be viewed in JBrowse.
