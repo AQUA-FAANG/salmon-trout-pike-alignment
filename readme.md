@@ -13,7 +13,8 @@ This repository contains a set of scripts to:
 3. Convert the resulting HAL files to MAF files.
 4. Convert the block coordinates in the MAF files back to the original coordinates
 5. Perform block coordinate conversion on BED files to enable the use of halLiftover.
-6. Additional tool to convert MAF to PAF files.
+6. Tool to convert MAF to PAF files.
+7. Tool for making alignmentDepth bigwig
 
 
 ## Prerequisites
@@ -56,3 +57,11 @@ This script lets you to perform liftover with synteny block alignments by conver
 * `run_maf2pafs.py.job.sh`: Slurm array that runs maf2pafs.py
 * `run_merge_pafs.py.job.sh`: Merge and sort pafs to get whole genome in one file
 
+### Alignment depth to bigwig
+
+Several scripts that allows to create bigwig files with alignment depth from the split hal files.
+(TODO: make it possible to pass parameters)
+
+* make_alignmentDepth_bigwig.sh - runs halAlignmentDepth on each block, converts block coordinates with fix_wiggle.py and converts to bigwig
+* merge_bigwigs.sh - uses bigWigMerge and bedGraphToBigWig
+* fixMergedBigWig.R - Fills all gaps with 0's (Since bigWigMerge removes all region with 0's)
