@@ -1,5 +1,6 @@
 #!/bin/bash
 
+set -e
 
 CACTUS_SIF="cactus_v2.7.1.sif"
 SYNTENY_TBL="Salmonid_Synteny_for_alignments_2023.04.12.xlsx"
@@ -20,7 +21,7 @@ out_ext=${out_bed##*.}
 
 
 
-#### split the input bed file ####
+echo "#### split the input bed file (${in_bed}) ####"
 
 SPLIT_DIR=$in_bed.split.$src_genome
 mkdir $SPLIT_DIR
@@ -33,7 +34,7 @@ module unload R
 
 
 
-#### liftover ####
+echo "#### liftover ####"
 
 
 SPLITLIFT_DIR=$out_bed.splitlift.$target_genome
@@ -60,7 +61,7 @@ done
 
 
 
-#### Fix coordinates and merge ####
+echo "#### Fix coordinates and merge ####"
 
 
 # check if output is PSL
@@ -75,6 +76,6 @@ else
 fi
 
 
-
+echo "DONE."
 
 

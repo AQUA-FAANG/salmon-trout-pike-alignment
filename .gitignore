@@ -6,3 +6,4 @@
 *.bed
 *.paf
 slurm-*
+*.sif
