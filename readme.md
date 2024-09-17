@@ -59,11 +59,11 @@ This script lets you to perform liftover with synteny block alignments by conver
 ### Alignment depth to bigwig
 
 Several scripts that allows to create bigwig files with alignment depth from the split hal files.
-(TODO: make it possible to pass parameters)
 
 * make_alignmentDepth_bigwig.sh - runs halAlignmentDepth on each block, converts block coordinates with fix_wiggle.py and converts to bigwig
-* merge_bigwigs.sh - uses bigWigMerge and bedGraphToBigWig
+* merge_bigwigs.sh - uses bigWigMerge and bedGraphToBigWig to merge and calls fixMergedBigWig.R to fill the gaps
 * fixMergedBigWig.R - Fills all gaps with 0's (Since bigWigMerge removes all region with 0's)
+* run_all_alignmentdepths.sh - runs make_alignmentDepth_bigwig.sh for multiple combinations of genomes
 
 ## Additional scripts
 
