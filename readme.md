@@ -8,13 +8,12 @@ The coordinates from the alignments output from cactus are relative to the extra
 
 ## Overview
 This repository contains a set of scripts to:
-1. Extract sequences for each synteny block.
-2. Align the blocks using Cactus.
-3. Convert the resulting HAL files to MAF files.
-4. Convert the block coordinates in the MAF files back to the original coordinates
-5. Perform block coordinate conversion on BED files to enable the use of halLiftover.
-6. Tool to convert MAF to PAF files.
-7. Tool for making alignmentDepth bigwig
+
+1. Main workflow for generating the alignments. (Extract blocks, run cactus, HAL to MAF, coordinate conversion)
+2. Tool to run halLiftover on the 
+3. Tool to convert MAF to PAF files.
+4. Tool for making alignmentDepth bigwig
+5. Scripts for mapping unified peaks between salmon and trout using liftover
 
 
 ## Prerequisites
@@ -65,3 +64,10 @@ Several scripts that allows to create bigwig files with alignment depth from the
 * make_alignmentDepth_bigwig.sh - runs halAlignmentDepth on each block, converts block coordinates with fix_wiggle.py and converts to bigwig
 * merge_bigwigs.sh - uses bigWigMerge and bedGraphToBigWig
 * fixMergedBigWig.R - Fills all gaps with 0's (Since bigWigMerge removes all region with 0's)
+
+## Additional scripts
+
+### Mapping unified peaks between salmon and pike
+
+* unified_peaks_liftover.sh - Script that downloads peaks and runs liftover
+* get_UniPeak_Ssal_overlapping_Omyk.R - Script that generates a mapping table from liftover results
