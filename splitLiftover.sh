@@ -75,6 +75,10 @@ else
   done
 fi
 
+echo "#### Cleanup.. remove temporary files ####"
+
+rm -r $SPLIT_DIR
+rm -r $SPLITLIFT_DIR
 
 echo "DONE."
 
